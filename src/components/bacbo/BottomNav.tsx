@@ -26,11 +26,14 @@ export function BottomNav() {
                 {active && (
                   <motion.span
                     layoutId="nav-pill"
-                    className="absolute inset-0 rounded-2xl bg-player/15 ring-1 ring-player-glow/25"
+                    className="glass-icon absolute inset-0 rounded-2xl"
                     transition={{ type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
                 <Icon
+                  fill={active ? "currentColor" : "none"}
+                  fillOpacity={active ? 0.22 : 0}
+                  strokeWidth={active ? 2.3 : 1.9}
                   className={cn(
                     "relative h-[18px] w-[18px] transition-colors sm:h-5 sm:w-5",
                     active ? "text-player-glow" : "text-muted-foreground",
@@ -38,7 +41,7 @@ export function BottomNav() {
                 />
                 <span
                   className={cn(
-                    "relative text-[10px] font-semibold sm:text-[11px] transition-colors",
+                    "relative text-[10px] font-bold sm:text-[11px] transition-colors",
                     active ? "text-foreground" : "text-muted-foreground",
                   )}
                 >

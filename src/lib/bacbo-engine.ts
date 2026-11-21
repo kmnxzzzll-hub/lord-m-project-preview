@@ -130,8 +130,14 @@ export function matchPatterns(outcomes: Outcome[]): PatternMatch[] {
 
   if (n >= 6) {
     const recent = runs.slice(-6);
-    const firstHalf = recent.slice(0, 3).map((r) => r.side + r.len).join("");
-    const secondHalf = recent.slice(3).map((r) => r.side + r.len).join("");
+    const firstHalf = recent
+      .slice(0, 3)
+      .map((r) => r.side + r.len)
+      .join("");
+    const secondHalf = recent
+      .slice(3)
+      .map((r) => r.side + r.len)
+      .join("");
     if (firstHalf === secondHalf) {
       matches.push({
         side: toSide(cur.side),
@@ -159,10 +165,10 @@ export const PATTERN_EXPLANATION: Record<string, string> = {
   "Parzinho 2-1-2": "Parzinho 2-1-2: estrutura de pares com um isolado",
   "3-1-3": "3-1-3: bloco de 3, um oposto e completando o próximo",
   "3-2-3": "3-2-3: bloco de 3, dois opostos e completando",
-  "Rampa": "Rampa: sequências crescentes de comprimento — continuar subindo",
-  "Perninhas": "Perninhas: sequências curtas alternadas — quebrar o ritmo",
-  "Espelho": "Espelho: o padrão recente está a repetir-se",
-  "Inversão": "Inversão: sequência longa quebrada — seguir o novo lado",
+  Rampa: "Rampa: sequências crescentes de comprimento — continuar subindo",
+  Perninhas: "Perninhas: sequências curtas alternadas — quebrar o ritmo",
+  Espelho: "Espelho: o padrão recente está a repetir-se",
+  Inversão: "Inversão: sequência longa quebrada — seguir o novo lado",
 };
 
 export const TREND_WINDOW = 8;
@@ -378,3 +384,32 @@ export const RESULT_LABEL: Record<SignalResult, string> = {
   green_g1: "GREEN G1",
   red: "RED",
 };
+
+/**
+ * Entry used when the robot has already analyzed the maximum rounds without a confirmed pattern:
+ * the strongest pattern on the table, or else the side of the current run (follow the trend).
+ */
+export function fallbackSignal(history: Round[]): Signal {
+  const outcomes = history.map((r) => r.outcome);
+  const best = matchPatterns(outcomes)[0];
+  const runs = toRuns(outcomes);
+  const last = runs[runs.length - 1];
+  const match: PatternMatch = best ?? {
+    side: last ? toSide(last.side) : "player",
+    pattern: "Tendência",
+    confidence: 60,
+  };
+  return {
+    ...match,
+    tieAlert: tieAlert(outcomes),
+    probability: pct(BASE_GREEN),
+    record: { n: 0, hits: 0 },
+    agree: [],
+    reasons: [
+      best
+        ? (PATTERN_EXPLANATION[best.pattern] ?? best.pattern)
+        : "Tendência: seguir o lado que venceu por último",
+      "Entrada após o limite de análise · com proteção de 1 gale",
+    ],
+  };
+}

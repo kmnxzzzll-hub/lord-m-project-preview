@@ -27,6 +27,10 @@ export const Route = createFileRoute("/auth")({
         name: "description",
         content: "Acesse sua conta do robô de sinais Bac Bo Live ou crie um cadastro.",
       },
+      { property: "og:title", content: "Entrar — Bac Bo Live" },
+      { property: "og:description", content: "Acesse o robô de sinais Bac Bo Live." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -184,99 +188,119 @@ function AuthPage() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              <h1 className="text-center font-display text-2xl font-bold tracking-tight sm:text-3xl">
+              <h1 className="text-center font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
                 {mode === "login" ? "Bem-vindo de volta" : "Criar conta"}
               </h1>
-              <p className="mt-1 text-center text-sm text-muted-foreground">
+              <p className="mt-1 text-center text-sm font-semibold text-muted-foreground">
                 {mode === "login"
                   ? "Entre para acessar seus robôs"
                   : "Seu acesso é liberado após aprovação do admin"}
               </p>
 
-              <form onSubmit={onSubmit} className="mt-4 space-y-2 sm:mt-6 sm:space-y-2.5">
-                {mode === "signup" && (
-                  <Field icon={<UserRound className="h-[18px] w-[18px]" />}>
+              <div className="liquid-glass mt-4 rounded-[1.75rem] p-4 sm:mt-6 sm:p-5">
+                <form onSubmit={onSubmit} className="space-y-3">
+                  {mode === "signup" && (
+                    <Field label="Nome" icon={<UserRound className="h-4 w-4" strokeWidth={2.4} />}>
+                      <input
+                        placeholder="Seu nome"
+                        autoComplete="name"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        className="w-full bg-transparent text-[15px] font-semibold text-foreground outline-none placeholder:font-medium placeholder:text-muted-foreground"
+                      />
+                    </Field>
+                  )}
+                  <Field label="E-mail" icon={<Mail className="h-4 w-4" strokeWidth={2.4} />}>
                     <input
-                      placeholder="Nome"
-                      autoComplete="name"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className="w-full bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
+                      type="email"
+                      placeholder="voce@email.com"
+                      autoComplete="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className="w-full bg-transparent text-[15px] font-semibold text-foreground outline-none placeholder:font-medium placeholder:text-muted-foreground"
                     />
                   </Field>
-                )}
-                <Field icon={<Mail className="h-[18px] w-[18px]" />}>
-                  <input
-                    type="email"
-                    placeholder="E-mail"
-                    autoComplete="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
-                  />
-                </Field>
-                <Field icon={<Lock className="h-[18px] w-[18px]" />}>
-                  <input
-                    type="password"
-                    placeholder="Senha"
-                    autoComplete={mode === "login" ? "current-password" : "new-password"}
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
-                  />
-                </Field>
+                  <Field label="Senha" icon={<Lock className="h-4 w-4" strokeWidth={2.4} />}>
+                    <input
+                      type="password"
+                      placeholder="Sua senha"
+                      autoComplete={mode === "login" ? "current-password" : "new-password"}
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      className="w-full bg-transparent text-[15px] font-semibold text-foreground outline-none placeholder:font-medium placeholder:text-muted-foreground"
+                    />
+                  </Field>
 
-                <AnimatePresence>
-                  {error && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="text-center text-sm text-destructive"
-                    >
-                      {error}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                  <AnimatePresence>
+                    {error && (
+                      <motion.p
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-center text-sm font-bold text-destructive"
+                      >
+                        {error}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    disabled={loading}
+                    className="mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-banker to-banker-glow text-[15px] font-extrabold text-primary-foreground shadow-[0_18px_40px_-18px_var(--banker)] disabled:opacity-70 sm:h-12"
+                  >
+                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {mode === "login" ? "Entrar com E-mail" : "Criar conta"}
+                  </motion.button>
+                </form>
 
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  disabled={loading}
-                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-banker to-banker-glow text-[15px] font-semibold text-primary-foreground shadow-[0_18px_40px_-18px_var(--banker)] disabled:opacity-70 sm:h-12"
-                >
-                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {mode === "login" ? "Entrar com E-mail" : "Criar conta"}
-                </motion.button>
-              </form>
-
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={onGoogle}
-                className="google-btn mt-2.5 flex h-11 w-full items-center justify-center gap-[10px] rounded-full px-3 text-sm font-medium shadow-[0_10px_30px_-12px_rgba(0,0,0,0.9)] sm:h-12"
-              >
-                <svg aria-hidden="true" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" />
-                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.080.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z" />
-                  <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z" />
-                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z" />
-                </svg>
-                Continuar com o Google
-              </motion.button>
-
-              <p className="mt-5 text-center text-sm text-muted-foreground sm:mt-6">
-                {mode === "login" ? "Não tem uma conta? " : "Já tem uma conta? "}
-                <button
                   type="button"
-                  onClick={() => {
-                    setError(null);
-                    setMode(mode === "login" ? "signup" : "login");
-                  }}
-                  className="font-semibold text-banker-glow"
+                  onClick={onGoogle}
+                  className="google-btn mt-2.5 flex h-11 w-full items-center justify-center gap-[10px] rounded-full px-3 text-sm font-bold shadow-[0_10px_30px_-12px_rgba(0,0,0,0.9)] sm:h-12"
                 >
-                  {mode === "login" ? "Criar conta" : "Entrar"}
-                </button>
-              </p>
+                  <svg
+                    aria-hidden="true"
+                    width="18"
+                    height="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="#4285F4"
+                      d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.080.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"
+                    />
+                  </svg>
+                  Continuar com o Google
+                </motion.button>
+
+                <p className="mt-4 text-center text-sm font-semibold text-muted-foreground">
+                  {mode === "login" ? "Não tem uma conta? " : "Já tem uma conta? "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setMode(mode === "login" ? "signup" : "login");
+                    }}
+                    className="font-extrabold text-banker-glow"
+                  >
+                    {mode === "login" ? "Criar conta" : "Entrar"}
+                  </button>
+                </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -288,11 +312,16 @@ function AuthPage() {
   );
 }
 
-function Field({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+function Field({ label, icon, children }: { label: string; icon: ReactNode; children: ReactNode }) {
   return (
-    <label className="liquid-glass flex h-11 items-center gap-3 rounded-full px-4 text-muted-foreground transition-colors focus-within:border-foreground/25 sm:h-12">
-      {icon}
-      {children}
+    <label className="block">
+      <span className="mb-1.5 block pl-1 text-xs font-extrabold uppercase tracking-[0.12em] text-foreground/85">
+        {label}
+      </span>
+      <span className="flex h-12 items-center gap-3 rounded-2xl border border-glass-border bg-background/40 pl-1.5 pr-4 transition-colors focus-within:border-player-glow/50 focus-within:bg-background/60">
+        <span className="glass-icon h-9 w-9 shrink-0 text-player-glow">{icon}</span>
+        {children}
+      </span>
     </label>
   );
 }

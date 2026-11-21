@@ -11,3 +11,11 @@
 - [x] Código, banco de dados, armazenamento e login copiados para este projeto
 - [ ] Definir o e-mail do admin (aguardando resposta do dono)
 - [ ] Dados e usuários antigos (aguardando exportação ou "pular")
+
+## Visual + gale (pedido 21/11)
+- [x] Card de porcentagens igual à referência, liquid glass, água fraca analisando / sobe no sinal, números gerando
+- [x] Liquid glass em ícones/cards, ícones estilo Apple, emojis 3D
+- [x] Mesa ao vivo mais realista
+- [x] Login: campos dentro de um card, textos em negrito
+- [x] 1 gale: notificação "Faça o Gale" e "Green no Gale"
+- [x] Máx. 2 rodadas analisando sem padrão; barra mais lenta e suave

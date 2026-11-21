@@ -1,13 +1,13 @@
-import type { ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Moon, Power, WifiOff, Wrench } from "lucide-react";
 import { Logo } from "@/components/bacbo/Logo";
 import { LiquidBoard } from "@/components/bacbo/LiquidBoard";
-import { RobotIcon } from "@/components/bacbo/RobotIcon";
 import { LiveTableCard } from "@/components/bacbo/LiveTable";
 import { SignalOrb, WaterWave } from "@/components/bacbo/SignalOrb";
-import { Scoreboard, ResultBanner } from "@/components/bacbo/Scoreboard";
+import { Emoji3D, Scoreboard } from "@/components/bacbo/Scoreboard";
+import robotEmoji from "@/assets/emoji/robot.webp";
 import { summarizeRoundFrequencies } from "@/lib/round-statistics";
 import { useRobot } from "@/lib/robot-context";
 import { useNow } from "@/lib/use-now";
@@ -43,16 +43,23 @@ function RobotsPage() {
   const { phase, isAdmin } = robot;
   const on = phase !== "off";
 
-  const dist = robot.history.length ? summarizeRoundFrequencies(robot.history, 20) : null;
+  const dist = useMemo(
+    () => (robot.history.length ? summarizeRoundFrequencies(robot.history, 20) : null),
+    [robot.history],
+  );
+  const live = on && !robot.maintenance && robot.reason !== "no_connection";
+  const analyzing =
+    live && phase === "analyzing" && robot.reason !== "result" && robot.reason !== "collecting";
+  const winner =
+    live && (phase === "signal" || robot.reason === "result") ? (robot.signal?.side ?? null) : null;
 
   return (
     <div className="space-y-3 sm:space-y-3.5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8 lg:gap-y-3.5 lg:space-y-0">
-      <ResultBanner />
       <div className="space-y-3 sm:space-y-3.5">
         <header className="pt-0.5">
           <Logo />
           <div className="mt-1.5 flex items-center justify-center gap-2.5 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5">
+            <span className="liquid-glass inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-bold">
               <span
                 className={cn(
                   "h-1.5 w-1.5 rounded-full",
@@ -61,7 +68,9 @@ function RobotsPage() {
               />
               {on ? "Online" : "Standby"}
             </span>
-            <Clock />
+            <span className="font-bold">
+              <Clock />
+            </span>
           </div>
         </header>
 
@@ -73,10 +82,10 @@ function RobotsPage() {
             whileTap={{ scale: 0.97 }}
             disabled={robot.toggling}
             className={cn(
-              "relative flex h-10 w-full items-center justify-center gap-2 overflow-hidden rounded-full font-display text-sm font-bold tracking-wide transition-colors disabled:opacity-60 sm:h-11",
+              "relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-full font-display text-sm font-extrabold tracking-wide transition-colors disabled:opacity-60 sm:h-12",
               robot.running
-                ? "border border-border bg-secondary text-foreground"
-                : "bg-gradient-to-r from-success/90 to-success text-background",
+                ? "liquid-glass text-foreground"
+                : "bg-gradient-to-b from-success to-success/80 text-background shadow-[var(--glass-shadow)]",
             )}
           >
             <Power className="relative h-3.5 w-3.5" />
@@ -84,10 +93,7 @@ function RobotsPage() {
           </motion.button>
         )}
 
-        <LiquidBoard
-          dist={dist}
-          winner={phase === "signal" ? (robot.signal?.side ?? null) : null}
-        />
+        <LiquidBoard dist={dist} winner={winner} analyzing={analyzing} />
 
         <LiveTableCard rounds={robot.rounds} />
       </div>
@@ -96,21 +102,23 @@ function RobotsPage() {
         <AnimatePresence mode="wait">
           {robot.maintenance ? (
             <Panel key="maint">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-tie/30 bg-tie/10 text-tie">
-                <Wrench className="h-3.5 w-3.5" />
+              <div className="glass-icon h-11 w-11 text-tie">
+                <Wrench className="h-5 w-5" strokeWidth={2.2} />
               </div>
               <span className="mt-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Modo manutenção
               </span>
-              <h2 className="mt-0.5 font-display text-base font-extrabold sm:text-lg">ROBÔ PAUSADO</h2>
+              <h2 className="mt-0.5 font-display text-base font-extrabold sm:text-lg">
+                ROBÔ PAUSADO
+              </h2>
               <p className="mt-1 text-[11px] text-muted-foreground sm:text-xs">
                 O administrador está calibrando o sistema. Volte em instantes.
               </p>
             </Panel>
           ) : phase === "off" ? (
             <Panel key="off">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground">
-                <Moon className="h-3.5 w-3.5" />
+              <div className="glass-icon h-11 w-11 text-tie-glow">
+                <Moon className="h-5 w-5" fill="currentColor" strokeWidth={1.6} />
               </div>
               <h2 className="mt-2 font-display text-base font-extrabold sm:text-lg">STANDBY</h2>
               <p className="mt-1 text-[11px] text-muted-foreground sm:text-xs">
@@ -121,8 +129,8 @@ function RobotsPage() {
             </Panel>
           ) : robot.reason === "no_connection" ? (
             <Panel key="offline">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
-                <WifiOff className="h-3.5 w-3.5" />
+              <div className="glass-icon h-11 w-11 text-destructive">
+                <WifiOff className="h-5 w-5" strokeWidth={2.2} />
               </div>
               <span className="mt-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Robô ligado
@@ -143,6 +151,7 @@ function RobotsPage() {
                 key={`signal-${robot.key}`}
                 side={robot.signal.side}
                 signal={robot.signal}
+                gale={robot.gale}
                 phaseStart={robot.phaseStart}
                 phaseEnd={robot.phaseEnd}
               />
@@ -166,7 +175,7 @@ function Panel({ children }: { children: ReactNode }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.16 }}
-      className="relative isolate flex flex-col items-center overflow-hidden rounded-2xl border border-border bg-card px-4 py-4 text-center sm:px-5 sm:py-5"
+      className="liquid-glass relative isolate flex flex-col items-center overflow-hidden rounded-[1.6rem] px-4 py-5 text-center sm:px-5 sm:py-6"
     >
       <WaterWave />
       <div className="relative z-10 flex w-full flex-col items-center">{children}</div>
@@ -174,35 +183,67 @@ function Panel({ children }: { children: ReactNode }) {
   );
 }
 
+const WAIT_TEXT: Record<string, string> = {
+  collecting: "Coletando as primeiras rodadas da mesa",
+  next_round: "Aguardando a próxima rodada",
+  no_pattern: "Lendo os padrões da mesa",
+  weak_pattern: "Confirmando a força do padrão",
+  conflict: "Comparando Player e Banker",
+  cold_table: "Esperando a mesa esquentar",
+  result: "Aguardando o resultado da entrada",
+};
+
 function Analyzing() {
-  const { phaseStart, phaseEnd, reason, waiting } = useRobot();
-  const now = useNow(250);
-  const total = Math.max(1, phaseEnd - phaseStart);
-  const elapsed = Math.min(total, Math.max(0, now - phaseStart));
+  const { phaseStart, phaseEnd, reason, waiting, gale } = useRobot();
 
   return (
     <Panel>
-      <RobotIcon size={32} className="sm:size-9" />
-      <h2 className="mt-2 font-display text-xs font-extrabold tracking-[0.1em] sm:text-sm">
+      <div className="glass-icon h-12 w-12 sm:h-14 sm:w-14">
+        <Emoji3D src={robotEmoji} size={34} className="animate-bob" />
+      </div>
+      <h2 className="mt-2.5 font-display text-xs font-extrabold tracking-[0.1em] sm:text-sm">
         <span className="text-success">SISTEMA ONLINE</span>{" "}
-        <span className="text-foreground">
-          {reason === "result" ? "AGUARDANDO" : "ANALISANDO"}
-        </span>
+        <span className="text-foreground">{reason === "result" ? "AGUARDANDO" : "ANALISANDO"}</span>
       </h2>
-      <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+      <p className="mt-1 text-[11px] font-bold text-muted-foreground">
+        {waiting
+          ? (WAIT_TEXT[reason ?? ""] ?? "Lendo os padrões da mesa")
+          : gale
+            ? "Preparando o gale"
+            : "Padrão encontrado · confirmando a entrada"}
+      </p>
+      <div className="relative mt-3 h-2 w-full overflow-hidden rounded-full bg-background/50 ring-1 ring-glass-border">
         {waiting ? (
           <motion.div
-            className="h-full w-1/3 rounded-full bg-gradient-to-r from-transparent via-success to-transparent"
-            animate={{ x: ["-100%", "300%"] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-y-0 w-2/5 rounded-full bg-gradient-to-r from-transparent via-success/80 to-transparent"
+            initial={{ left: "-40%" }}
+            animate={{ left: ["-40%", "100%"] }}
+            transition={{ duration: 3.6, repeat: Infinity, ease: [0.45, 0, 0.55, 1] }}
           />
         ) : (
-          <div
-            className="relative h-full rounded-full bg-gradient-to-r from-success/60 to-success transition-[width] duration-150 ease-linear"
-            style={{ width: `${(elapsed / total) * 100}%` }}
-          />
+          <SmoothFill key={phaseStart} start={phaseStart} end={phaseEnd} />
         )}
       </div>
     </Panel>
+  );
+}
+
+/** Fills from the current position to 100% in one continuous, linear motion until `end`. */
+function SmoothFill({ start, end }: { start: number; end: number }) {
+  const [plan] = useState(() => {
+    const now = Date.now();
+    const total = Math.max(1, end - start);
+    return {
+      from: Math.min(1, Math.max(0, (now - start) / total)),
+      seconds: Math.max(0.3, (end - now) / 1000),
+    };
+  });
+  return (
+    <motion.div
+      className="h-full rounded-full bg-gradient-to-r from-success/50 to-success shadow-[0_0_12px_var(--success)]"
+      initial={{ width: `${plan.from * 100}%` }}
+      animate={{ width: "100%" }}
+      transition={{ duration: plan.seconds, ease: "linear" }}
+    />
   );
 }

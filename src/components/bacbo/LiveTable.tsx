@@ -13,10 +13,11 @@ const PIPS: Record<number, number[]> = {
   6: [0, 2, 3, 5, 6, 8],
 };
 
+/** A translucent casino die (blue for Player, red for Banker) with white pips. */
 export function DieFace({
   value,
   tone,
-  size = 18,
+  size = 26,
 }: {
   value: number;
   tone: "player" | "banker";
@@ -25,51 +26,61 @@ export function DieFace({
   const on = PIPS[value] ?? [];
   return (
     <span
-      aria-label={`${value}`}
+      role="img"
+      aria-label={value ? `Dado ${value}` : "Dado"}
       className={cn(
-        "grid grid-cols-3 grid-rows-3 place-items-center rounded-[26%] bg-card/90 p-[14%] ring-1",
-        tone === "player" ? "ring-player-glow/40" : "ring-banker-glow/40",
+        "grid shrink-0 grid-cols-3 grid-rows-3 place-items-center rounded-[24%]",
+        tone === "player" ? "die-player" : "die-banker",
+        !value && "opacity-40",
       )}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, padding: Math.round(size * 0.14) }}
     >
       {Array.from({ length: 9 }, (_, i) => (
         <span
           key={i}
-          className={cn(
-            "h-[70%] w-[70%] rounded-full",
-            on.includes(i) && (tone === "player" ? "bg-player-glow" : "bg-banker-glow"),
-          )}
+          className={cn("rounded-full", on.includes(i) && "bg-pip shadow-sm")}
+          style={{ width: Math.round(size * 0.18), height: Math.round(size * 0.18) }}
         />
       ))}
     </span>
   );
 }
 
-function SideDice({ round, side }: { round: LiveRound | null; side: "player" | "banker" }) {
+function Side({ round, side }: { round: LiveRound | null; side: "player" | "banker" }) {
   const isPlayer = side === "player";
   const dice = round ? (isPlayer ? round.p : round.b) : [0, 0];
-  const score = round ? (isPlayer ? round.pScore : round.bScore) : 0;
+  const score = round ? (isPlayer ? round.pScore : round.bScore) : null;
   const won = !!round && round.outcome === (isPlayer ? "P" : "B");
   return (
-    <div className={cn("flex flex-col gap-0.5", isPlayer ? "items-start" : "items-end")}>
+    <div
+      className={cn(
+        "relative flex flex-1 flex-col gap-1.5 rounded-xl px-2.5 py-2 ring-1 transition-colors",
+        isPlayer ? "items-start bg-player/10" : "items-end bg-banker/10",
+        won
+          ? isPlayer
+            ? "ring-player-glow/60 bg-player/20"
+            : "ring-banker-glow/60 bg-banker/20"
+          : "ring-glass-border",
+      )}
+    >
       <span
         className={cn(
-          "text-[9px] font-semibold uppercase tracking-[0.16em]",
+          "text-[10px] font-extrabold uppercase tracking-[0.16em]",
           isPlayer ? "text-player-glow" : "text-banker-glow",
         )}
       >
         {isPlayer ? "Player" : "Banker"}
       </span>
-      <div className={cn("flex items-center gap-1", !isPlayer && "flex-row-reverse")}>
+      <div className={cn("flex items-center gap-1.5", !isPlayer && "flex-row-reverse")}>
         <DieFace value={dice[0] ?? 0} tone={side} />
         <DieFace value={dice[1] ?? 0} tone={side} />
         <span
           className={cn(
-            "font-display text-base font-extrabold tabular-nums sm:text-lg",
+            "ml-0.5 mr-0.5 font-display text-xl font-extrabold tabular-nums",
             won ? "text-foreground" : "text-muted-foreground",
           )}
         >
-          {score}
+          {score ?? "–"}
         </span>
       </div>
     </div>
@@ -78,52 +89,79 @@ function SideDice({ round, side }: { round: LiveRound | null; side: "player" | "
 
 export function LiveTableCard({ rounds }: { rounds: LiveRound[] }) {
   const last = rounds[rounds.length - 1] ?? null;
+  const recent = rounds.slice(-14);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-2.5 sm:p-3">
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-[0.14em]">
-          <Radio className={cn("h-2.5 w-2.5", last ? "text-success" : "text-muted-foreground")} />
+    <div className="liquid-glass rounded-[1.4rem] p-3 sm:p-3.5">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-foreground/85">
+          <span className="glass-icon h-6 w-6">
+            <Radio className={cn("h-3.5 w-3.5", last ? "text-success" : "text-muted-foreground")} />
+          </span>
           Mesa ao vivo
         </span>
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 font-semibold",
-            last ? "text-success" : "text-destructive",
+            "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold ring-1",
+            last
+              ? "bg-success/10 text-success ring-success/30"
+              : "bg-destructive/10 text-destructive ring-destructive/30",
           )}
         >
-          <span
-            className={cn(
-              "h-1.5 w-1.5 rounded-full",
-              last ? "bg-success" : "bg-destructive",
-            )}
-          />
-          {last ? "Conectada" : "Sem conexão"}
+          <span className="relative flex h-1.5 w-1.5">
+            {last && <span className="absolute inset-0 animate-ping rounded-full bg-success/70" />}
+            <span
+              className={cn(
+                "relative h-1.5 w-1.5 rounded-full",
+                last ? "bg-success" : "bg-destructive",
+              )}
+            />
+          </span>
+          {last ? "Ao vivo" : "Sem conexão"}
         </span>
       </div>
 
       <motion.div
         key={last?.id ?? "none"}
-        initial={{ opacity: 0, y: 3 }}
+        initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-2 flex items-end justify-between gap-2"
+        transition={{ duration: 0.25 }}
+        className="relative mt-2.5 flex items-stretch gap-2"
       >
-        <SideDice round={last} side="player" />
-        {last ? (
-          <Ball
-            kind={outcomeKind(last.outcome)}
-            label={outcomeLabel(last.outcome)}
-            size={22}
-            className="mb-0.5"
-          />
-        ) : (
-          <span className="mb-1 font-display text-sm font-bold text-muted-foreground">×</span>
-        )}
-        <SideDice round={last} side="banker" />
+        <Side round={last} side="player" />
+        <Side round={last} side="banker" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full p-1 bg-background/70 ring-1 ring-glass-border">
+          {last ? (
+            <Ball kind={outcomeKind(last.outcome)} label={outcomeLabel(last.outcome)} size={26} />
+          ) : (
+            <span className="flex h-[26px] w-[26px] items-center justify-center font-display text-sm font-bold text-muted-foreground">
+              ×
+            </span>
+          )}
+        </div>
       </motion.div>
+
+      {recent.length > 1 && (
+        <div className="mt-2.5 flex items-center gap-2">
+          <span className="shrink-0 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+            Últimas
+          </span>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-1 overflow-hidden">
+            {recent.map((r, i) => (
+              <Ball
+                key={r.id}
+                kind={outcomeKind(r.outcome)}
+                size={i === recent.length - 1 ? 16 : 13}
+                className={i === recent.length - 1 ? "" : "opacity-80"}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {last?.outcome === "T" && last.multiplier && (
-        <p className="mt-1.5 text-center text-[10px] font-semibold text-tie-glow">
-          Tie pagou {last.multiplier}x
+        <p className="mt-1.5 text-center text-[11px] font-bold text-tie-glow">
+          Empate pagou {last.multiplier}x
         </p>
       )}
     </div>

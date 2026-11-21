@@ -1,13 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /** Lightweight SVG robot icon */
-export function RobotIcon({
-  size = 36,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) {
+export function RobotIcon({ size = 36, className }: { size?: number; className?: string }) {
   return (
     <div
       className={cn("relative flex items-center justify-center", className)}
@@ -30,15 +24,7 @@ export function RobotIcon({
           strokeLinecap="round"
         />
         <circle cx="32" cy="5" r="3.2" stroke="currentColor" strokeWidth="2.2" />
-        <rect
-          x="14"
-          y="14"
-          width="36"
-          height="36"
-          rx="8"
-          stroke="currentColor"
-          strokeWidth="2.4"
-        />
+        <rect x="14" y="14" width="36" height="36" rx="8" stroke="currentColor" strokeWidth="2.4" />
         <line
           x1="24"
           y1="28"

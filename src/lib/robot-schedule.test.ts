@@ -5,6 +5,9 @@ import {
   ANALYSIS_MS,
   AUTO_CONFIDENCE,
   BET_CLOSE_MS,
+  decisionAfter,
+  GALE_REVEAL_MS,
+  MAX_ANALYSIS_ROUNDS,
   liveWindow,
   mergeSignals,
   robotView,
@@ -16,10 +19,10 @@ import {
 
 const T0 = 1_800_000_000_000;
 /** Real-looking rounds, one every ROUND_MS, the last settling at `lastAt`. */
-function table(seq: string, lastAt: number): LiveRound[] {
+function table(seq: string, lastAt: number, prefix = "r"): LiveRound[] {
   const out = seq.split("") as Outcome[];
   return out.map((outcome, i) => ({
-    id: `r${i}`,
+    id: `${prefix}${i}`,
     settledAt: lastAt - (out.length - 1 - i) * ROUND_MS,
     outcome,
     p: [3, 3],
@@ -48,10 +51,11 @@ describe("robot driven by the real table", () => {
     expect(v.signal).toBeNull();
   });
 
-  it("analysis is automatic: the signal shows as soon as the round settles", () => {
-    expect(ANALYSIS_MS).toBe(0);
+  it("the signal shows after an 8 second analysis window", () => {
+    expect(ANALYSIS_MS).toBe(8_000);
     const at = T0 + 60_000;
-    const v = robotView(cfg, surf(at), at);
+    expect(robotView(cfg, surf(at), at + ANALYSIS_MS - 1).phase).toBe("analyzing");
+    const v = robotView(cfg, surf(at), at + ANALYSIS_MS);
     expect(v.phase).toBe("signal");
     expect(v.signal?.side).toBe("player");
     expect(v.key).toBe("r5");
@@ -84,6 +88,7 @@ describe("robot driven by the real table", () => {
   it("when bets close the entry leaves the screen and waits for its result", () => {
     const at = T0 + 60_000;
     const open = robotView(cfg, surf(at), at + BET_CLOSE_MS - 1);
+    expect(open.gale).toBe(false);
     expect(open.phase).toBe("signal");
     expect(open.phaseEnd).toBe(at + BET_CLOSE_MS);
     const closed = robotView(cfg, surf(at), at + BET_CLOSE_MS);
@@ -110,7 +115,7 @@ describe("robot driven by the real table", () => {
     const at = T0 + 300_000;
     const rounds = table("PPPPPPPPPP", at);
     const signIn = at - 2 * ROUND_MS;
-    const list = signalsBetween(cfg, rounds, signIn, at + 2_000);
+    const list = signalsBetween(cfg, rounds, signIn, at + ANALYSIS_MS);
     expect(list.map((s) => s.key)).toEqual(["r9", "r8", "r7"]);
     for (const s of list) expect(s.at).toBeGreaterThanOrEqual(signIn);
   });
@@ -142,6 +147,41 @@ describe("robot driven by the real table", () => {
     const a = { key: "x:1", side: "player" as const, at: 1 };
     const b = { key: "x:2", side: "banker" as const, at: 2 };
     expect(mergeSignals([a], [a, b])).toEqual([b, a]);
+  });
+});
+
+describe("1 gale and the analysis limit", () => {
+  // All rounds settle after the robot was switched on.
+  const late = (seq: string) => table(seq, T0 + 20 * ROUND_MS, `${seq}:`);
+  const lastAt = T0 + 20 * ROUND_MS;
+
+  it("when the entry misses, the next signal is the gale on the same side", () => {
+    const v = robotView(cfg, late("PBBPPPB"), lastAt + GALE_REVEAL_MS);
+    expect(v.phase).toBe("signal");
+    expect(v.gale).toBe(true);
+    expect(v.signal?.side).toBe("player");
+  });
+
+  it("there is only 1 gale: after a lost gale the robot reads a new pattern", () => {
+    const d = decisionAfter(late("PBBPPPBB"), 7, cfg);
+    expect(d.kind).toBe("entry");
+  });
+
+  it("the gale is not stored as a new entry in the session history", () => {
+    const rounds = late("PBBPPPB");
+    const keys = signalsBetween(cfg, rounds, T0, lastAt + ANALYSIS_MS).map((s) => s.key);
+    expect(keys).toContain("PBBPPPB:5");
+    expect(keys).not.toContain("PBBPPPB:6");
+  });
+
+  it("analyzes at most 2 rounds without a pattern, then enters", () => {
+    expect(MAX_ANALYSIS_ROUNDS).toBe(2);
+    const rounds = late("PPPPPPPPBPPP");
+    expect(decisionAfter(rounds, 9, cfg).kind).toBe("skip");
+    expect(decisionAfter(rounds, 10, cfg).kind).toBe("skip");
+    const third = decisionAfter(rounds, 11, cfg);
+    expect(third.kind).toBe("entry");
+    expect(third.kind === "entry" && third.forced).toBe(true);
   });
 });
 
