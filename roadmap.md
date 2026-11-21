@@ -9,7 +9,7 @@
 
 ## Importação do GitHub (lord-m-project)
 - [x] Código, banco de dados, armazenamento e login copiados para este projeto
-- [ ] Definir o e-mail do admin (aguardando resposta do dono)
+- [x] Definir o e-mail do admin (kmnxzzzll@gmail.com)
 - [ ] Dados e usuários antigos (aguardando exportação ou "pular")
 
 ## Visual + gale (pedido 21/11)
