@@ -14,6 +14,7 @@ interface Stored {
 /**
  * Signals for this user. Persists across logins and page reloads so sequences
  * and scoreboard don't reset when the user leaves and comes back.
+ * Only cleared explicitly (robot off / maintenance / API pause).
  */
 export function loadHistory(userId: string, _session?: number): SessionSignal[] {
   try {
@@ -34,6 +35,15 @@ export function saveHistory(userId: string, _session: number | undefined, items:
     );
   } catch {
     /* storage full or unavailable */
+  }
+}
+
+/** Clear this user's signal history (used when the robot is turned off / maintenance / API paused). */
+export function clearHistory(userId: string) {
+  try {
+    localStorage.removeItem(PREFIX + userId);
+  } catch {
+    /* ignore */
   }
 }
 
