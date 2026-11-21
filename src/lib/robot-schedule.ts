@@ -32,6 +32,8 @@ const HISTORY = 60;
 export const MIN_HISTORY = 5;
 /** Rounds the robot may spend analyzing without a pattern; on the next one it enters anyway. */
 export const MAX_ANALYSIS_ROUNDS = 2;
+/** Max signals kept for scoreboard / streaks (was 20; longer sequences no longer get truncated). */
+export const SIGNAL_HISTORY_LIMIT = 100;
 
 export function liveWindow(rounds: LiveRound[], now: number): LiveRound[] {
   const last = rounds[rounds.length - 1];
@@ -274,7 +276,7 @@ export function signalsBetween(
   rounds: LiveRound[],
   from: number,
   to: number,
-  limit = 20,
+  limit = SIGNAL_HISTORY_LIMIT,
 ): SessionSignal[] {
   const out: SessionSignal[] = [];
   for (let i = rounds.length - 1; i >= 0 && out.length < limit; i--) {
@@ -293,7 +295,7 @@ export function signalsBetween(
 export function mergeSignals(
   existing: SessionSignal[],
   incoming: SessionSignal[],
-  limit = 20,
+  limit = SIGNAL_HISTORY_LIMIT,
 ): SessionSignal[] {
   const map = new Map<string, SessionSignal>();
   for (const s of [...existing, ...incoming]) map.set(s.key, s);
