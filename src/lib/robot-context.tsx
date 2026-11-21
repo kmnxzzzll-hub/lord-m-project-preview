@@ -18,6 +18,7 @@ import {
   mergeSignals,
   robotView,
   signalsBetween,
+  SIGNAL_HISTORY_LIMIT,
   type RobotView,
   type ScheduleConfig,
   type SessionSignal,
@@ -118,6 +119,7 @@ export function RobotProvider({
   );
   const [sessionSignals, setSessionSignals] = useState<SessionSignal[]>([]);
 
+  // Load once per user; history persists across logins (sessionStart no longer clears it).
   useEffect(() => {
     setSessionSignals(loadHistory(userId, sessionStart));
   }, [userId, sessionStart]);
@@ -142,12 +144,14 @@ export function RobotProvider({
 
   useEffect(() => {
     if (!cfg || maintenance || apiPaused) return;
-    const found = signalsBetween(cfg, rounds, Math.max(sessionStart, cfg.startedAt), now);
+    // Use robot start time only — do not tie discovery window to login session,
+    // so signals keep accumulating when the user leaves and returns.
+    const found = signalsBetween(cfg, rounds, cfg.startedAt, now);
     if (!found.length) return;
     setSessionSignals((prev) => {
       const next = mergeSignals(prev, found);
       if (next.length === prev.length && next[0]?.key === prev[0]?.key) return prev;
-      const limited = next.slice(0, 20);
+      const limited = next.slice(0, SIGNAL_HISTORY_LIMIT);
       saveHistory(userId, sessionStart, limited);
       return limited;
     });
