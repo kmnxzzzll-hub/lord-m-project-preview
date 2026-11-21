@@ -2,9 +2,19 @@ import { useRef, useState, type ReactNode } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Camera, ChevronRight, Loader2, LogOut, Mail, ShieldCheck, UserRound } from "lucide-react";
+import {
+  Camera,
+  ChevronRight,
+  KeyRound,
+  Loader2,
+  LogOut,
+  Mail,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/bacbo/Avatar";
+import { supabase } from "@/integrations/supabase/client";
 import { signOutEverywhere } from "@/lib/auth-helpers";
 import { avatarUrlQuery, uploadAvatar } from "@/lib/avatar";
 import { useMyAccount } from "@/lib/account";
@@ -117,6 +127,8 @@ function ProfilePage() {
         />
       </div>
 
+      <PasswordCard />
+
       {isAdmin && (
         <Link
           to="/admin"
@@ -151,5 +163,85 @@ function Row({ icon, label, value }: { icon: ReactNode; label: string; value: st
       <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
       <span className="ml-auto min-w-0 truncate text-sm font-medium">{value}</span>
     </div>
+  );
+}
+
+/** Lets a signed-in user (also Google accounts) create or change the password used on the login form. */
+function PasswordCard() {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (password.length < 6) {
+      toast.error("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("As senhas não são iguais.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setSaving(false);
+    if (error) {
+      toast.error(
+        /weak|pwned|leaked/i.test(error.message)
+          ? "Essa senha é fraca ou já vazou na internet. Escolha outra."
+          : /same/i.test(error.message)
+            ? "Essa já é a sua senha atual."
+            : "Não foi possível salvar a senha. Tente de novo.",
+      );
+      return;
+    }
+    setPassword("");
+    setConfirm("");
+    toast.success("Senha salva! Agora você também pode entrar com e-mail e senha.");
+  }
+
+  const field =
+    "h-11 w-full rounded-xl border border-glass-border bg-background/40 px-3.5 text-sm font-bold outline-none placeholder:font-semibold placeholder:text-muted-foreground/70 focus:border-tie/60";
+
+  return (
+    <form onSubmit={onSubmit} className="liquid-glass space-y-3 rounded-[1.5rem] p-4">
+      <div className="flex items-center gap-3">
+        <span className="glass-icon h-10 w-10 text-tie">
+          <KeyRound className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="font-bold">Senha de acesso</p>
+          <p className="text-xs font-semibold text-muted-foreground">
+            Crie ou troque a senha para entrar com e-mail e senha.
+          </p>
+        </div>
+      </div>
+      <input
+        type="password"
+        autoComplete="new-password"
+        placeholder="Nova senha"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className={field}
+        maxLength={72}
+      />
+      <input
+        type="password"
+        autoComplete="new-password"
+        placeholder="Repita a nova senha"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+        className={field}
+        maxLength={72}
+      />
+      <button
+        type="submit"
+        disabled={saving || !password || !confirm}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-tie font-display text-sm font-extrabold text-background disabled:opacity-50"
+      >
+        {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+        Salvar senha
+      </button>
+    </form>
   );
 }

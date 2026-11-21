@@ -1,26 +1,8 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Water } from "@/components/bacbo/Water";
 import { cn } from "@/lib/utils";
 
 type Dist = { player: number; banker: number; tie: number; sampleSize: number };
-
-/** While the robot analyzes, the percentages "generate" (shuffle) until it decides. */
-function useGenerating(active: boolean, dist: Dist | null): Dist | null {
-  const [random, setRandom] = useState<Dist | null>(null);
-  useEffect(() => {
-    if (!active) return;
-    const tick = () => {
-      const tie = 2 + Math.floor(Math.random() * 10);
-      const player = 25 + Math.floor(Math.random() * (73 - tie - 25));
-      setRandom({ player, tie, banker: 100 - player - tie, sampleSize: 0 });
-    };
-    tick();
-    const id = setInterval(tick, 140);
-    return () => clearInterval(id);
-  }, [active]);
-  return active && random ? random : dist;
-}
 
 const LOW = 12;
 const HIGH = 68;
@@ -65,14 +47,12 @@ function Pane({
 export function LiquidBoard({
   dist,
   winner,
-  analyzing = false,
 }: {
   dist: Dist | null;
   winner?: "player" | "banker" | null;
-  /** Robot is reading the table: numbers shuffle and the water stays low. */
-  analyzing?: boolean;
 }) {
-  const shown = useGenerating(analyzing, dist);
+  // Real percentages from the recent rounds; they never shuffle while the robot analyzes.
+  const shown = dist;
   const level = (side: "player" | "banker") => (winner === side ? HIGH : LOW);
 
   return (

@@ -33,13 +33,16 @@ export function SignalOrb({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.2 }}
-      className={cn(
-        "liquid-glass relative isolate flex flex-col items-center overflow-hidden rounded-[1.6rem] px-4 py-5 sm:px-5 sm:py-6",
-        isPlayer ? "border-player-glow/40" : "border-banker-glow/40",
-      )}
+      className="liquid-glass relative isolate flex flex-col items-center overflow-hidden rounded-[1.6rem] px-4 py-5 sm:px-5 sm:py-6"
     >
-      {/* Water rises inside the card when the entry is confirmed */}
-      <Water level={46} from={8} tone={side} className="opacity-70" />
+      {/* Transparent tint of the side to bet on, with a matching border */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-inset",
+          isPlayer ? "bg-player/15 ring-player-glow/70" : "bg-banker/15 ring-banker-glow/70",
+        )}
+      />
 
       <div className="relative z-10 flex flex-col items-center">
         {gale && (

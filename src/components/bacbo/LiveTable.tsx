@@ -89,7 +89,6 @@ function Side({ round, side }: { round: LiveRound | null; side: "player" | "bank
 
 export function LiveTableCard({ rounds }: { rounds: LiveRound[] }) {
   const last = rounds[rounds.length - 1] ?? null;
-  const recent = rounds.slice(-14);
 
   return (
     <div className="liquid-glass rounded-[1.4rem] p-3 sm:p-3.5">
@@ -140,24 +139,6 @@ export function LiveTableCard({ rounds }: { rounds: LiveRound[] }) {
           )}
         </div>
       </motion.div>
-
-      {recent.length > 1 && (
-        <div className="mt-2.5 flex items-center gap-2">
-          <span className="shrink-0 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-            Últimas
-          </span>
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-1 overflow-hidden">
-            {recent.map((r, i) => (
-              <Ball
-                key={r.id}
-                kind={outcomeKind(r.outcome)}
-                size={i === recent.length - 1 ? 16 : 13}
-                className={i === recent.length - 1 ? "" : "opacity-80"}
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {last?.outcome === "T" && last.multiplier && (
         <p className="mt-1.5 text-center text-[11px] font-bold text-tie-glow">

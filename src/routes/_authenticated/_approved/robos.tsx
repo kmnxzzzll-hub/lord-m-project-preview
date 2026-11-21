@@ -48,8 +48,6 @@ function RobotsPage() {
     [robot.history],
   );
   const live = on && !robot.maintenance && robot.reason !== "no_connection";
-  const analyzing =
-    live && phase === "analyzing" && robot.reason !== "result" && robot.reason !== "collecting";
   const winner =
     live && (phase === "signal" || robot.reason === "result") ? (robot.signal?.side ?? null) : null;
 
@@ -93,7 +91,7 @@ function RobotsPage() {
           </motion.button>
         )}
 
-        <LiquidBoard dist={dist} winner={winner} analyzing={analyzing} />
+        <LiquidBoard dist={dist} winner={winner} />
 
         <LiveTableCard rounds={robot.rounds} />
       </div>
