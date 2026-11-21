@@ -243,11 +243,18 @@
   backdrop-filter: blur(18px) saturate(170%);
 }
 
+/* Opaque base so neighbor player/banker colors never show through the Empate circle */
 @utility pane-tie {
-  background: var(--glass-sheen), linear-gradient(180deg, color-mix(in oklab, var(--tie) 70%, transparent), color-mix(in oklab, oklch(0.55 0.12 80) 60%, transparent));
-  border: 1px solid color-mix(in oklab, var(--tie-glow) 55%, transparent);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 35%), inset 0 -10px 22px -10px oklch(0 0 0 / 35%), 0 0 0 5px var(--background), 0 14px 30px -14px var(--tie);
-  backdrop-filter: blur(18px) saturate(170%);
+  background:
+    var(--glass-sheen),
+    linear-gradient(180deg, color-mix(in oklab, var(--tie) 88%, oklch(0.2 0.02 80)), color-mix(in oklab, oklch(0.42 0.12 75) 92%, oklch(0.12 0.02 70)));
+  border: 1px solid color-mix(in oklab, var(--tie-glow) 60%, transparent);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 35%),
+    inset 0 -10px 22px -10px oklch(0 0 0 / 40%),
+    0 0 0 6px var(--background),
+    0 14px 30px -14px var(--tie);
+  /* No backdrop-filter: keeps the circle solid and blocks blue/red bleed */
 }
 
 @utility text-emboss {
