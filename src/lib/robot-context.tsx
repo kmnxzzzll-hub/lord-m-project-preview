@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -23,7 +24,7 @@ import {
   type ScheduleConfig,
   type SessionSignal,
 } from "@/lib/robot-schedule";
-import { loadHistory, saveHistory } from "@/lib/session-history";
+import { clearHistory, loadHistory, saveHistory } from "@/lib/session-history";
 import { scoreSignals } from "@/lib/scoreboard";
 import { liveFeedEnabled, robotActive } from "@/lib/access-rules";
 
@@ -119,10 +120,24 @@ export function RobotProvider({
   );
   const [sessionSignals, setSessionSignals] = useState<SessionSignal[]>([]);
 
-  // Load once per user; history persists across logins (sessionStart no longer clears it).
+  // Load once per user; history persists across logins and reloads.
   useEffect(() => {
     setSessionSignals(loadHistory(userId, sessionStart));
   }, [userId, sessionStart]);
+
+  // Reset greens / reds / sequence ONLY when the robot is turned off, goes to
+  // maintenance, or the API is paused. Reload / leave-and-return do NOT clear.
+  const wasAlive = useRef(false);
+  useEffect(() => {
+    if (!settings) return;
+    const alive = running && !maintenance && !apiPaused;
+    if (wasAlive.current && !alive) {
+      clearHistory(userId);
+      setSessionSignals([]);
+      logAdminAction("Histórico de sinais zerado (robô desligado / manutenção / API pausada)");
+    }
+    wasAlive.current = alive;
+  }, [settings, running, maintenance, apiPaused, userId]);
 
   const startedAt = settings?.started_at ? Date.parse(settings.started_at) : 0;
   const minConfidence = AUTO_CONFIDENCE;
@@ -144,8 +159,7 @@ export function RobotProvider({
 
   useEffect(() => {
     if (!cfg || maintenance || apiPaused) return;
-    // Use robot start time only — do not tie discovery window to login session,
-    // so signals keep accumulating when the user leaves and returns.
+    // Use robot start time only — signals keep accumulating when the user reloads or returns.
     const found = signalsBetween(cfg, rounds, cfg.startedAt, now);
     if (!found.length) return;
     setSessionSignals((prev) => {
