@@ -60,7 +60,10 @@ export function Water({
         </svg>
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-current/60 to-current/25" />
-      <div className="absolute inset-x-0 top-0 h-px bg-current/80 blur-[0.5px]" />
+      {/* Bright top edge only on raised (signal) water — on calm panels it sat on the progress bar */}
+      {!calm && (
+        <div className="absolute inset-x-0 top-0 h-px bg-current/80 blur-[0.5px]" />
+      )}
     </motion.div>
   );
 }
