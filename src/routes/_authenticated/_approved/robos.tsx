@@ -166,7 +166,14 @@ function RobotsPage() {
   );
 }
 
-function Panel({ children }: { children: ReactNode }) {
+function Panel({
+  children,
+  showWater = true,
+}: {
+  children: ReactNode;
+  /** Water layer at the bottom; turn off when it collides with a progress bar. */
+  showWater?: boolean;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -175,7 +182,7 @@ function Panel({ children }: { children: ReactNode }) {
       transition={{ duration: 0.16 }}
       className="liquid-glass relative isolate flex flex-col items-center overflow-hidden rounded-[1.6rem] px-4 py-5 text-center sm:px-5 sm:py-6"
     >
-      <WaterWave />
+      {showWater && <WaterWave />}
       <div className="relative z-10 flex w-full flex-col items-center">{children}</div>
     </motion.div>
   );
@@ -195,7 +202,7 @@ function Analyzing() {
   const { phaseStart, phaseEnd, reason, waiting, gale } = useRobot();
 
   return (
-    <Panel>
+    <Panel showWater={false}>
       <div className="glass-icon h-12 w-12 sm:h-14 sm:w-14">
         <Emoji3D src={robotEmoji} size={34} className="animate-bob" />
       </div>
@@ -210,10 +217,11 @@ function Analyzing() {
             ? "Preparando o gale"
             : "Padrão encontrado · confirmando a entrada"}
       </p>
-      <div className="relative mt-3 h-2 w-full overflow-hidden rounded-full bg-background/50 ring-1 ring-glass-border">
+      {/* Clean track: no ring, no water underneath — only the fill is visible */}
+      <div className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
         {waiting ? (
           <motion.div
-            className="absolute inset-y-0 w-2/5 rounded-full bg-gradient-to-r from-transparent via-success/80 to-transparent"
+            className="absolute inset-y-0 w-2/5 rounded-full bg-gradient-to-r from-transparent via-success to-transparent"
             initial={{ left: "-40%" }}
             animate={{ left: ["-40%", "100%"] }}
             transition={{ duration: 3.6, repeat: Infinity, ease: [0.45, 0, 0.55, 1] }}
@@ -238,7 +246,7 @@ function SmoothFill({ start, end }: { start: number; end: number }) {
   });
   return (
     <motion.div
-      className="h-full rounded-full bg-gradient-to-r from-success/50 to-success shadow-[0_0_12px_var(--success)]"
+      className="h-full rounded-full bg-success"
       initial={{ width: `${plan.from * 100}%` }}
       animate={{ width: "100%" }}
       transition={{ duration: plan.seconds, ease: "linear" }}
