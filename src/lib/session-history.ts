@@ -29,10 +29,7 @@ export function loadHistory(userId: string, _session?: number): SessionSignal[] 
 
 export function saveHistory(userId: string, _session: number | undefined, items: SessionSignal[]) {
   try {
-    localStorage.setItem(
-      PREFIX + userId,
-      JSON.stringify({ items } satisfies Stored),
-    );
+    localStorage.setItem(PREFIX + userId, JSON.stringify({ items } satisfies Stored));
   } catch {
     /* storage full or unavailable */
   }

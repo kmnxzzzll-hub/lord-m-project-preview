@@ -62,7 +62,7 @@ export const getLiveTable = createServerFn({ method: "GET" })
 /** Admin: salva provedor + chave, testa e reconecta a mesa na hora. */
 export const connectLiveTable = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { key: string; provider?: string }) => parseFeedKeyInput(input))
+  .validator((input: { key: string; provider?: string }) => parseFeedKeyInput(input))
   .handler(async ({ data, context }) => {
     const { data: isAdmin } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,

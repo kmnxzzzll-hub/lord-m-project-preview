@@ -45,7 +45,8 @@ export interface LiveRound extends Round {
 
 const OUTCOMES: Record<string, Outcome> = { player: "P", banker: "B", tie: "T" };
 
-const isDie = (n: unknown): n is number => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 6;
+const isDie = (n: unknown): n is number =>
+  Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 6;
 const isPair = (d: unknown): d is [number, number] =>
   Array.isArray(d) && d.length === 2 && d.every(isDie);
 

@@ -1,4 +1,5 @@
 <!-- LOVABLE:BEGIN -->
+
 > [!IMPORTANT]
 > This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
 > published git history — force pushing, or rebasing/amending/squashing commits
@@ -27,8 +28,11 @@ use the editor.
   `LOVABLE_API_KEY`. When Lovable does not provide one, users can bring their
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
+
 <!-- LOVABLE:END -->
+
 ## Project rules
+
 - Account access is gated by `profiles.status` (pending/approved/rejected/blocked); only admins may change it (DB trigger), so never let client code bypass that check.
 - Roles live in `user_roles` with the `has_role` security-definer function; never store roles on profiles.
 - The signal engine is pure functions in `src/lib/bacbo-engine.ts`; the shared schedule in `src/lib/robot-schedule.ts` derives signals deterministically from `robot_settings.started_at` and each round's `received_at` (fixed timing constants, no admin setting; rounds stored too late to bet are skipped; `analyze` scores each pattern from the exact dice odds plus its replayed record in the recent rounds and holds back on weak/conflicting/cold readings, all derived from rounds only; `decisionAfter` adds the single gale after a lost entry and a forced entry after `MAX_ANALYSIS_ROUNDS` empty rounds, scored with the gale in `src/lib/scoreboard.ts`), so every client shows the same signal without a server job. `src/lib/robot-context.tsx` only wires settings, timers and session history.

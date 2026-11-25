@@ -4,6 +4,7 @@ Aplicação web em TanStack Start (React 19, Vite, Tailwind v4) com backend Lova
 Lê rodadas reais da mesa Bac Bo Live e mostra sinais a utilizadores aprovados.
 
 ## Estrutura
+
 - `src/routes/index.tsx` — redireciona para `/robos` ou `/auth`.
 - `src/routes/auth.tsx` — login/cadastro (e-mail e Google).
 - `src/routes/_authenticated/` — exige sessão; `_approved/` exige conta aprovada:
@@ -13,6 +14,7 @@ Lê rodadas reais da mesa Bac Bo Live e mostra sinais a utilizadores aprovados.
 - `drizzle/migrations/` — histórico do esquema da base (gerido pelo Lovable; não editar migrações antigas).
 
 ## Requisitos e comandos (Bun)
+
 ```bash
 bun install --frozen-lockfile
 bun run dev        # servidor local
@@ -21,20 +23,26 @@ bun run typecheck  # tsc --noEmit
 bun run test       # vitest
 bun run build
 ```
+
 O CI (`.github/workflows/ci.yml`) corre estes passos em cada push e pull request.
 
 ## Configuração
+
 Copie `.env.example` para `.env` e preencha. O `.env` versionado contém apenas configuração pública do backend (as builds publicadas só incluem ficheiros do repositório).
+
 - Públicas (browser): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`.
 - Servidor: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_PROJECT_ID`.
 - **Só servidor (segredos):** `SUPABASE_SERVICE_ROLE_KEY` / `DB_SERVICE_ROLE_KEY`, `LYNXMETRICS_API_KEY`. Nunca usar prefixo `VITE_`, nunca importar no browser, nunca escrever em logs ou documentação.
 
 ## Publicação
+
 No Lovable: botão Publish. Em hosting próprio (Vercel/Netlify), definir as variáveis acima no painel do hosting; os segredos só como variáveis de servidor.
 
 ## Contas e administradores
+
 Todo o cadastro novo começa `pending` com a role `user`. Não há administrador automático por e-mail.
 Primeiro administrador (depois de a conta existir e estar confirmada), no editor SQL do backend, substituindo `<UUID>` pelo id da conta:
+
 ```sql
 begin;
 insert into public.user_roles (user_id, role) values ('<UUID>', 'admin') on conflict (user_id, role) do nothing;
@@ -43,15 +51,18 @@ select set_config('request.jwt.claims', json_build_object('sub', '<UUID>', 'role
 update public.profiles set status = 'approved' where id = '<UUID>';
 commit;
 ```
+
 Depois disso, outros utilizadores são aprovados/bloqueados no Painel Admin.
 
 ## Verificar permissões sem expor dados pessoais
+
 ```sql
 select tablename, policyname, cmd, roles from pg_policies where schemaname = 'public' order by 1, 2;
 select relname, relrowsecurity from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r';
 select status, count(*) from public.profiles group by status;
 select role, count(*) from public.user_roles group by role;
 ```
+
 A pausa da API da mesa é global (`robot_settings.api_paused`): só administradores a alteram (política RLS de update) e, enquanto ativa, nenhum cliente consulta a mesa e o servidor não chama o provedor.
 
 ## Estatísticas observadas

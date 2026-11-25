@@ -72,7 +72,15 @@ describe("signal resolution (entry + 1 gale, tie covered)", () => {
 describe("stats", () => {
   it("accuracy, streak and gale counts", () => {
     const s = computeStats(["green_g0", "green_g1", "red", "green_g1"]);
-    expect(s).toMatchObject({ total: 4, greens: 3, accuracy: 75, streak: 2, g0: 1, g1: 2, reds: 1 });
+    expect(s).toMatchObject({
+      total: 4,
+      greens: 3,
+      accuracy: 75,
+      streak: 2,
+      g0: 1,
+      g1: 2,
+      reds: 1,
+    });
   });
   it("distribution reports observed frequencies without clipping ties", () => {
     const d = distribution(rounds("PPPPPPPPPPTTTTTTTTTT"));
